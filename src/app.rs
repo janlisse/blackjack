@@ -31,7 +31,8 @@ pub enum Suit {
 pub enum GameResult {
     Won,
     Lost,
-    Tie
+    Tie,
+    Bust
 }
 
 
@@ -174,7 +175,7 @@ impl App {
             } else {
                 // round is over
                 if player_score > 21 {
-                    self.result = Some(GameResult::Lost);
+                    self.result = Some(GameResult::Bust);
                 }
                 else if dealer_score > 21 {
                     self.result = Some(GameResult::Won);

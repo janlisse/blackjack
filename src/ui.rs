@@ -9,6 +9,7 @@ use tui::{
     Frame
 };
 
+const NEW_GAME_TEXT: &str = "Press [n] to start a new game";
 const NO_SPACE: &str = "";
 const SINGLE_SPACE: &str = " ";
 
@@ -155,22 +156,23 @@ fn render_card<B: Backend>(f: &mut Frame<B>, area: Rect, card: &Card, name: Opti
 
 fn render_status<B: Backend>(f: &mut Frame<B>, area: Rect, app: &App) {
     if !app.game_running {
-        let status_bar = Paragraph::new("Press [n] to start a new game!")
+        let status_bar = Paragraph::new(NEW_GAME_TEXT)
                 .alignment(Alignment::Center);
         f.render_widget(status_bar, area);
     }
     if app.ask_for_card {
-        let status_bar = Paragraph::new("Draw card [d] or stay [s]?")
+        let status_bar = Paragraph::new("Draw card [d] or stand [s]?")
                 .alignment(Alignment::Center);
         f.render_widget(status_bar, area);
     }
     if let Some(game_result) = &app.result {
         let text = match game_result {
             GameResult::Won => "Congrats, you won the game!",
-            GameResult::Lost => "Sorry, you lost the game..",
-            GameResult::Tie => "Boring, it's a tie."
+            GameResult::Lost => "Sorry, you lost the game!",
+            GameResult::Tie => "Nobody won, it's a tie.",
+            GameResult::Bust => "You got bust!"
         };
-        let status_bar = Paragraph::new(text)
+        let status_bar = Paragraph::new(format!("{}\n{}", text, NEW_GAME_TEXT))
                 .alignment(Alignment::Center);
         f.render_widget(status_bar, area);
     }
@@ -178,15 +180,4 @@ fn render_status<B: Backend>(f: &mut Frame<B>, area: Rect, app: &App) {
 
 fn get_min_constraints(num: u16)-> Vec<Constraint> {
     return (1..=num).map(|_| Constraint::Length(13)).collect::<Vec<Constraint>>();
-}
-
-fn get_constraints(num: u16) -> Vec<Constraint> {
-    let d = 100 / num;
-    let r = 100 % num;
-
-    let mut s1 = (1..=r).map(|n| Constraint::Percentage(d+1)).collect::<Vec<Constraint>>();
-    let mut s2 = (1..=(num-r)).map(|n| Constraint::Percentage(d)).collect::<Vec<Constraint>>();
-
-    s1.append(&mut s2);
-    return s1;
 }
