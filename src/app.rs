@@ -135,6 +135,8 @@ impl App {
     pub fn on_start(&mut self) {
         self.game_running = true;
         self.deck = Deck::new();
+        self.player_in = true;
+        self.result = None;
         self.player_hand = Hand{cards: vec![self.deck.next_card(), self.deck.next_card()]};
         self.dealer_hand = Hand{cards:vec![self.deck.next_card(), self.deck.next_card()]};
         self.dealer_hand.cards[0].hide = true;
