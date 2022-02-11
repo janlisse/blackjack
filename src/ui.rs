@@ -83,19 +83,21 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &App) {
         .constraints([Constraint::Percentage(33), Constraint::Percentage(33), Constraint::Percentage(33)].as_ref())
         .split(chunks[1]);
 
+    render_deck(f, card_chunks[0]);
+    render_hand(f, card_chunks[1], &app.dealer_hand, Color::Red, "Dealer");
+    render_hand(f, card_chunks[2], &app.player_hand, Color::Black, "Player");
+    render_status(f, chunks[2], app);
+}
+
+fn render_deck<B: Backend>(f: &mut Frame<B>, area: Rect) {
     let deck = Paragraph::new(DECK)
         .block(Block::default().style(Style::default()
         .fg(Color::Black)))
         .alignment(Alignment::Left);
-
-    f.render_widget(deck, card_chunks[0]);
-
-    render_hand(f, card_chunks[1], &app.dealer_hand, "Dealer");
-    render_hand(f, card_chunks[2], &app.player_hand, "Player");
-    render_status(f, chunks[2], app);
+    f.render_widget(deck, area);
 }
 
-fn render_hand<B: Backend>(f: &mut Frame<B>, area: Rect, hand: &Hand, name: &str) {
+fn render_hand<B: Backend>(f: &mut Frame<B>, area: Rect, hand: &Hand, color: Color, name: &str) {
     let num_cards = u16::try_from(hand.cards.len()).unwrap();
     if num_cards > 0 {
         let constraints = get_min_constraints(num_cards);
@@ -106,12 +108,12 @@ fn render_hand<B: Backend>(f: &mut Frame<B>, area: Rect, hand: &Hand, name: &str
             .split(area);
         for (i, card) in hand.cards.iter().enumerate() {
             let is_first = i == 0;
-            render_card(f, card_chunks[i], card, if is_first {Some(name)} else {None});
+            render_card(f, card_chunks[i], card, color, if is_first {Some(name)} else {None});
         }
     }
 }
 
-fn render_card<B: Backend>(f: &mut Frame<B>, area: Rect, card: &Card, name: Option<&str>) {
+fn render_card<B: Backend>(f: &mut Frame<B>, area: Rect, card: &Card, color: Color, name: Option<&str>) {
     let suit = match card.suit {
         Suit::Spade => "♠",
         Suit::Club => "♣",
@@ -149,7 +151,7 @@ fn render_card<B: Backend>(f: &mut Frame<B>, area: Rect, card: &Card, name: Opti
 
     let card = Paragraph::new(card_face)
         .block(Block::default().style(Style::default()
-        .fg(Color::Black)).title(title))
+        .fg(color)).title(title))
         .alignment(Alignment::Left);
     f.render_widget(card, area);
 }
