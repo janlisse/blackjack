@@ -3,8 +3,7 @@ use crate::app::{App, Card, Suit, Rank, Hand, GameResult};
 use tui::{
     backend::{Backend},
     layout::{Alignment, Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
-    text::Span,
+    style::{Color, Style},
     widgets::{Block, Paragraph},
     Frame
 };
@@ -13,30 +12,37 @@ const NEW_GAME_TEXT: &str = "Press [n] to start a new game";
 const NO_SPACE: &str = "";
 const SINGLE_SPACE: &str = " ";
 
-const DECK: &str = 
-   "╭───────────╮╮╮╮╮╮\n\
-    │░░░░░░░░░░░││││││\n\
-    │░░░░░░░░░░░││││││\n\
-    │░░░░░░░░░░░││││││\n\
-    │░░░░░░░░░░░││││││\n\
-    │░░░░░░░░░░░││││││\n\
-    │░░░░░░░░░░░││││││\n\
-    │░░░░░░░░░░░││││││\n\
-    ╰───────────╯╯╯╯╯╯";
+const TITLE: &str = r#"
+ _____                   _             _   ____  _            _     _            _    
+|_   _|__ _ __ _ __ ___ (_)_ __   __ _| | | __ )| | __ _  ___| | __(_) __ _  ___| | __
+  | |/ _ \ '__| '_ ` _ \| | '_ \ / _` | | |  _ \| |/ _` |/ __| |/ /| |/ _` |/ __| |/ /
+  | |  __/ |  | | | | | | | | | | (_| | | | |_) | | (_| | (__|   < | | (_| | (__|   < 
+  |_|\___|_|  |_| |_| |_|_|_| |_|\__,_|_| |____/|_|\__,_|\___|_|\_\/ |\__,_|\___|_|\_\
+                                                                 |__/                 
+"#;
 
-const BACK: &str = 
-   "╭───────────╮\n\
-    │░░░░░░░░░░░│\n\
-    │░░░░░░░░░░░│\n\
-    │░░░░░░░░░░░│\n\
-    │░░░░░░░░░░░│\n\
-    │░░░░░░░░░░░│\n\
-    │░░░░░░░░░░░│\n\
-    │░░░░░░░░░░░│\n\
-    ╰───────────╯";
+const DECK: &str = r#"
+╭───────╮╮╮╮╮╮
+│░░░░░░░││││││
+│░░░░░░░││││││
+│░░░░░░░││││││
+│░░░░░░░││││││
+╰───────╯╯╯╯╯╯"#;
+
+const BACK: &str = r#"
+╭───────────╮
+│░░░░░░░░░░░│
+│░░░░░░░░░░░│
+│░░░░░░░░░░░│
+│░░░░░░░░░░░│
+│░░░░░░░░░░░│
+│░░░░░░░░░░░│
+│░░░░░░░░░░░│
+╰───────────╯
+"#;
 
 fn card_face(rank: &str, suit: &str, spacing: &str) -> String { return format!(
-        "╭───────────╮\n\
+      "\n╭───────────╮\n\
          │{rank}{spacing}         │\n\
          │           │\n\
          │           │\n\
@@ -56,21 +62,11 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(1)
-        .constraints([Constraint::Percentage(5), Constraint::Percentage(85), Constraint::Percentage(10)].as_ref())
+        .constraints([Constraint::Min(10), Constraint::Min(40)].as_ref())
         .split(f.size());
 
-    let text = Span::styled(
-        "Terminal Blackjack",
-        Style::default()
-            .fg(Color::White)
-            .add_modifier(Modifier::BOLD));    
     
-    let caption = Paragraph::new(text)
-                .alignment(Alignment::Center);
-                
-
-    f.render_widget(caption, chunks[0]);
-
+    render_title(f,chunks[0]);
     
     // Game table
     let block = Block::default()
@@ -80,21 +76,32 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &App) {
     let card_chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(2)
-        .constraints([Constraint::Percentage(33), Constraint::Percentage(33), Constraint::Percentage(33)].as_ref())
+        .constraints([Constraint::Percentage(20), Constraint::Percentage(40), Constraint::Percentage(40)].as_ref())
         .split(chunks[1]);
 
-    render_deck(f, card_chunks[0]);
+    render_status(f, card_chunks[0], app);
     render_hand(f, card_chunks[1], &app.dealer_hand, Color::Red, "Dealer");
     render_hand(f, card_chunks[2], &app.player_hand, Color::Black, "Player");
-    render_status(f, chunks[2], app);
+    
 }
 
-fn render_deck<B: Backend>(f: &mut Frame<B>, area: Rect) {
-    let deck = Paragraph::new(DECK)
-        .block(Block::default().style(Style::default()
-        .fg(Color::Black)))
-        .alignment(Alignment::Left);
-    f.render_widget(deck, area);
+fn render_title<B: Backend>(f: &mut Frame<B>, area: Rect) {
+    let caption_chunks = Layout::default()
+    .direction(Direction::Horizontal)
+    .margin(1)
+    .constraints([Constraint::Min(15), Constraint::Min(86)].as_ref())
+    .split(area);
+
+    let deck_logo = Paragraph::new(DECK)
+                .alignment(Alignment::Left);
+    
+    f.render_widget(deck_logo, caption_chunks[0]);
+
+    let caption = Paragraph::new(TITLE)
+                .alignment(Alignment::Left);
+                
+
+    f.render_widget(caption, caption_chunks[1]);
 }
 
 fn render_hand<B: Backend>(f: &mut Frame<B>, area: Rect, hand: &Hand, color: Color, name: &str) {
@@ -162,7 +169,7 @@ fn render_status<B: Backend>(f: &mut Frame<B>, area: Rect, app: &App) {
                 .alignment(Alignment::Center);
         f.render_widget(status_bar, area);
     }
-    if app.ask_for_card {
+    if app.players_turn {
         let status_bar = Paragraph::new("Draw card [d] or stand [s]?")
                 .alignment(Alignment::Center);
         f.render_widget(status_bar, area);

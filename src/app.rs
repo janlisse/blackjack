@@ -113,8 +113,8 @@ impl Deck {
 pub struct App {
     pub deck: Deck,
     pub game_running: bool,
-    pub player_in: bool,
-    pub ask_for_card: bool,
+    pub players_turn: bool,
+    pub dealers_turn: bool,
     pub player_hand: Hand,
     pub dealer_hand: Hand,
     pub result: Option<GameResult>
@@ -127,8 +127,8 @@ impl App {
             player_hand: Hand{cards:vec![]},
             dealer_hand: Hand{cards:vec![]},
             game_running: false,
-            player_in: true,
-            ask_for_card: false,
+            players_turn: false,
+            dealers_turn: false,
             result: None
         }
     }
@@ -136,36 +136,36 @@ impl App {
     pub fn on_start(&mut self) {
         self.game_running = true;
         self.deck = Deck::new();
-        self.player_in = true;
+        self.players_turn = true;
+        self.dealers_turn = false;
         self.result = None;
         self.player_hand = Hand{cards: vec![self.deck.next_card(), self.deck.next_card()]};
         self.dealer_hand = Hand{cards:vec![self.deck.next_card(), self.deck.next_card()]};
         self.dealer_hand.cards[0].hide = true;
-        self.ask_for_card = true
     }
     
     pub fn on_draw(&mut self) {
-        if self.ask_for_card {
+        if self.players_turn {
             let card = self.deck.next_card();
             self.player_hand.add(card);
 
             let current_score = self.player_hand.score();
             if current_score > 21 {
-                self.player_in = false;
-                self.ask_for_card = false
+                self.players_turn = false;
+                self.dealers_turn = true;
             }
         }
     }
 
     pub fn on_stay(&mut self) {
-        if self.ask_for_card {
-            self.player_in = false;
-            self.ask_for_card = false
+        if self.players_turn {
+            self.players_turn = false;
+            self.dealers_turn = true;
         }
     }
 
     pub fn on_tick(&mut self) {
-        if !self.player_in {
+        if self.dealers_turn {
             let player_score = self.player_hand.score();
             let dealer_score = self.dealer_hand.score();
             self.dealer_hand.cards[0].hide = false;
