@@ -1,7 +1,6 @@
 mod app;
 mod ui;
 
-
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
     execute,
@@ -45,18 +44,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: app::App,) -> io::Result<()> {
+fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: app::App) -> io::Result<()> {
     let mut last_tick = Instant::now();
     let tick_rate = Duration::from_millis(250);
+    let mut counter: u64 = 0;
     loop {
         terminal.draw(|f| ui::draw(f, &app))?;
-
         let timeout = tick_rate
             .checked_sub(last_tick.elapsed())
             .unwrap_or_else(|| Duration::from_secs(0));
         if crossterm::event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
-                 match key.code {
+                match key.code {
                     KeyCode::Char('q') => return Ok(()),
                     KeyCode::Char('n') => app.on_start(),
                     KeyCode::Char('d') => app.on_draw(),
@@ -66,8 +65,9 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: app::App,) -> io::Re
             }
         }
         if last_tick.elapsed() >= tick_rate {
-            app.on_tick();
+            app.on_tick(counter);
             last_tick = Instant::now();
+            counter += 1;
         }
     }
 }
