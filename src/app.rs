@@ -72,7 +72,7 @@ pub struct Hand {
 
 impl Hand {
     fn score(&self) -> u8 {
-        let mut score: u8 = self.cards.iter().map(|c| c.score()).sum();
+        let mut score: u8 = self.cards.iter().map(Card::score).sum();
         let mut num_aces = self
             .cards
             .iter()
@@ -87,19 +87,19 @@ impl Hand {
                 break;
             }
         }
-        return score;
+        score
     }
 
     fn has_blackjack(&self) -> bool {
-        return self.cards.len() == 2 && self.score() == 21;
+        self.cards.len() == 2 && self.score() == 21
     }
 
-    fn is_bust(&self) -> bool {
-        return self.score() > 21;
+    pub fn is_bust(&self) -> bool {
+        self.score() > 21
     }
 
     fn has_hidden(&self) -> bool {
-        return self.cards.iter().filter(|c| c.hidden).count() > 0;
+        self.cards.iter().filter(|c| c.hidden).count() > 0
     }
 
     fn add(&mut self, card: Card) {
@@ -113,7 +113,7 @@ pub struct Deck {
 
 impl Deck {
     fn empty() -> Deck {
-        return Deck { cards: vec![] };
+        Deck { cards: vec![] }
     }
 
     fn shuffle(&mut self) {
@@ -133,7 +133,7 @@ impl Deck {
     }
 
     fn next_card(&mut self) -> Card {
-        return self.cards.pop().expect("Cards must not be empty");
+        self.cards.pop().expect("Cards must not be empty")
     }
 }
 
@@ -188,7 +188,7 @@ impl App {
 
     pub fn on_stay(&mut self) {
         if self.player_status == PlayerStatus::Draw {
-            self.player_status = PlayerStatus::Stand
+            self.player_status = PlayerStatus::Stand;
         }
     }
 
@@ -206,16 +206,14 @@ impl App {
             } else if dealer_score < 17 {
                 let new_card = self.deck.next_card();
                 self.dealer_hand.add(new_card);
-            } else {
-                if self.player_hand.has_blackjack() && self.dealer_hand.has_blackjack() {
-                    self.result = Some(GameResult::Push);
-                } else if self.dealer_hand.has_blackjack() || player_score < dealer_score {
-                    self.result = Some(GameResult::Lost);
-                } else if self.player_hand.has_blackjack() || player_score > dealer_score {
-                    self.result = Some(GameResult::Won);
-                } else if player_score == dealer_score {
-                    self.result = Some(GameResult::Push);
-                }
+            } else if self.player_hand.has_blackjack() && self.dealer_hand.has_blackjack() {
+                self.result = Some(GameResult::Push);
+            } else if self.dealer_hand.has_blackjack() || player_score < dealer_score {
+                self.result = Some(GameResult::Lost);
+            } else if self.player_hand.has_blackjack() || player_score > dealer_score {
+                self.result = Some(GameResult::Won);
+            } else if player_score == dealer_score {
+                self.result = Some(GameResult::Push);
             }
         }
     }

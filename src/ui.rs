@@ -164,10 +164,7 @@ fn render_card<B: Backend>(
         _ => SINGLE_SPACE,
     };
 
-    let title = match name {
-        Some(name) => name,
-        None => "",
-    };
+    let title = name.unwrap_or("");
 
     let card_face = if card.hidden {
         BACK.to_string()
@@ -205,7 +202,7 @@ fn render_status<B: Backend>(f: &mut Frame<B>, area: Rect, app: &App) {
 }
 
 fn get_min_constraints(num: u16) -> Vec<Constraint> {
-    return (1..=num)
+    (1..=num)
         .map(|_| Constraint::Length(13))
-        .collect::<Vec<Constraint>>();
+        .collect::<Vec<Constraint>>()
 }
